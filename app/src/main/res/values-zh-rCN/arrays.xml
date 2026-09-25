@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 仅覆盖「纯显示型（按位置索引）」数组；取值型数组（frameSync、FEXCore 预设、
+     multiblock、screen_size 的 Custom、userActions、vkBasalt 锐化等）由程序按字符串
+     比较或持久化，绝不能翻译，故不在此定义，回退默认英文。 -->
+<resources>
+    <string-array name="touchscreenInputModesEntries">
+        <item>触摸板</item>
+        <item>模拟触摸屏</item>
+        <item>直接触摸</item>
+    </string-array>
+
+    <string-array name="transformCapturedPointerEntries">
+        <item>否</item>
+        <item>顺时针</item>
+        <item>逆时针</item>
+        <item>上下颠倒</item>
+        <item>自动（触摸板）</item>
+    </string-array>
+
+    <string-array name="desktop_theme_entries">
+        <item>浅色</item>
+        <item>深色</item>
+    </string-array>
+
+    <string-array name="desktop_background_type_entries">
+        <item>图片</item>
+        <item>纯色</item>
+    </string-array>
+
+    <string-array name="startup_selection_entries">
+        <item>正常（加载所有服务）</item>
+        <item>精简（仅加载必要服务）</item>
+    </string-array>
+
+    <string-array name="binding_type_entries">
+        <item>键盘</item>
+        <item>鼠标</item>
+        <item>游戏手柄</item>
+    </string-array>
+</resources>
