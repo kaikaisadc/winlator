@@ -36,37 +36,14 @@ target_link_libraries(winlator
 )
 
 
-# ---- EVSHIM (phase-0 stub) -----------------------------------
-add_library(evshim SHARED winlator/evshim.c)
-
-# ---------- SDL2 library (Build from source) ----------
-# Add SDL2 as a library target.
-# This assumes cpp/sdl2 has its own CMakeLists.txt or you list its sources here.
-# Most commonly, SDL2 comes with its own CMake build system.
-# If cpp/sdl2 has a CMakeLists.txt:
-add_subdirectory(sdl2) # This will create an SDL2 target (often named SDL2::SDL2 or just SDL2)
-
-# If you need to list SDL2 source files manually (less ideal if SDL2 is complex):
-# file(GLOB SDL2_SOURCES "sdl2/*.c" "sdl2/src/*/*.c" ...) # Adjust glob patterns
-# add_library(MySDL2 STATIC ${SDL2_SOURCES}) # Or SHARED
-# target_include_directories(MySDL2 PUBLIC "${CMAKE_CURRENT_LIST_DIR}/sdl2/include") # Assuming headers are in sdl2/include
-
-
-# Tell evshim's compiler where to find SDL2 headers (still needed)
-target_include_directories(evshim PRIVATE
-        "${CMAKE_CURRENT_LIST_DIR}/sdl2/include" # Adjust if SDL headers are elsewhere in your sdl2 dir
-)
-
-# ---------- link everything ----------
-target_link_libraries(evshim PRIVATE # Or PUBLIC
-        SDL2            # If add_subdirectory(sdl2) created a target named SDL2
-        # Or MySDL2     # If you used add_library(MySDL2 ...)
-        # Or SDL2::SDL2 # Common imported target name for modern CMake SDL2
-        log
-        dl
-)
-
-# drop .so into jniLibs/<abi> so Gradle packs it automatically
-set_target_properties(evshim PROPERTIES
-        LIBRARY_OUTPUT_DIRECTORY
-        "${CMAKE_CURRENT_SOURCE_DIR}/jniLibs/${ANDROID_ABI}")
+# ---- EVSHIM (not built here) ------------------------------------------------
+# winlator/evshim.c is a multi-controller virtual-joystick shim. Its SDL symbols
+# are resolved at runtime via dlopen("libSDL2-2.0.so.0") + dlsym, so it only
+# needs SDL2 headers to compile and must NOT link against SDL2.
+#
+# The app does not build or bundle a usable evshim: the live copy ships inside
+# imagefs.txz and is LD_PRELOADed from the imagefs lib dir by
+# BionicProgramLauncherComponent. The old "add_subdirectory(sdl2)" step relied
+# on a submodule whose URL was never recorded in .gitmodules (the gitlink is
+# orphaned and its commit is unrecoverable), so a clean clone could not build.
+# evshim.c is kept as the reference implementation for the imagefs artifact.
