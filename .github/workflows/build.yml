@@ -1,0 +1,68 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - cmod_bionic
+      - 'feature/**'
+  pull_request:
+    branches:
+      - cmod_bionic
+  workflow_dispatch:
+    inputs:
+      bundle_imagefs:
+        description: 'Bundle imagefs.txz from the official Cmod APK (large; needed for standalone installs)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Cache NDK
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.ANDROID_SDK_ROOT }}/ndk/27.0.12077973
+          key: ndk-27.0.12077973
+
+      - name: Install NDK and CMake
+        run: sdkmanager --install "ndk;27.0.12077973" "cmake;3.22.1"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Bundle imagefs from official APK
+        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.bundle_imagefs) || startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          curl -fL --retry 3 -o /tmp/cmod.apk \
+            "https://github.com/coffincolors/winlator/releases/download/cmod_v13.1/Winlator-Cmod-v13.1.1.apk"
+          unzip -j /tmp/cmod.apk assets/imagefs.txz -d app/src/main/assets/
+          ls -lh app/src/main/assets/imagefs.txz
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Winlator-Cmod-CN-debug
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
